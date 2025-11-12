@@ -1,0 +1,77 @@
+Create Database and Collection
+use ComputerShoppe
+db.createCollection("Products")
+
+2️⃣ Insert Products into the Shop
+db.Products.insertMany([
+  { product_id: 1, name: "Keyboard", price: 800 },
+  { product_id: 2, name: "Monitor", price: 7500 },
+  { product_id: 3, name: "Mouse", price: 600 },
+  { product_id: 4, name: "Printer", price: 5500 },
+  { product_id: 5, name: "Processor", price: 12000 },
+  { product_id: 6, name: "Switch", price: 400 },
+  { product_id: 7, name: "Modem", price: 1500 }
+])
+
+
+✅ This adds products to your shop’s database.
+
+3️⃣ Display All Products
+db.Products.find().pretty()
+
+4️⃣ Place an Order (for any 5 products)
+
+Let’s create an Orders collection.
+
+db.createCollection("Orders")
+
+
+Now insert one order document:
+
+db.Orders.insertOne({
+  order_id: 101,
+  customer_name: "Tejas",
+  items: [
+    { product: "Keyboard", price: 800 },
+    { product: "Monitor", price: 7500 },
+    { product: "Mouse", price: 600 },
+    { product: "Printer", price: 5500 },
+    { product: "Processor", price: 12000 }
+  ],
+  order_date: "2025-10-30"
+})
+
+5️⃣ Display the Order
+db.Orders.find().pretty()
+
+6️⃣ Prepare the Bill (show total)
+
+MongoDB doesn’t calculate totals automatically,
+but you can use the aggregation pipeline to compute it:
+
+db.Orders.aggregate([
+  { $match: { order_id: 101 } },
+  { $unwind: "$items" },
+  {
+    $group: {
+      _id: "$order_id",
+      customer_name: { $first: "$customer_name" },
+      total_amount: { $sum: "$items.price" },
+      items: { $push: "$items" }
+    }
+  }
+])
+
+📄 Example Output
+{
+  "_id": 101,
+  "customer_name": "Tejas",
+  "total_amount": 26400,
+  "items": [
+    { "product": "Keyboard", "price": 800 },
+    { "product": "Monitor", "price": 7500 },
+    { "product": "Mouse", "price": 600 },
+    { "product": "Printer", "price": 5500 },
+    { "product": "Processor", "price": 12000 }
+  ]
+}
